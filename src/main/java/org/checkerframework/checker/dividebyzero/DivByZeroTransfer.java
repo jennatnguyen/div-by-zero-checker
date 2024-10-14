@@ -74,11 +74,39 @@ public class DivByZeroTransfer extends CFTransfer {
    * @param rhs the lattice point for the right-hand side of the comparison expression
    * @return a refined type for lhs
    */
-  private AnnotationMirror refineLhsOfComparison(
-      Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
-    return lhs;
-  }
+    
+private AnnotationMirror refineLhsOfComparison(
+    Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
+
+    if (operator == Comparison.NE) {
+        if (equal(rhs, reflect(Zero.class))) {
+            return reflect(NonZero.class); // lhs cannot be Zero if it is not equal to Zero
+        }
+    } else if (operator == Comparison.EQ) {
+        if (equal(rhs, reflect(Zero.class))) {
+            return reflect(Zero.class); // Refine lhs to Zero
+        }
+    } else if (operator == Comparison.LT) {
+        // If lhs < 0, we can say lhs is less than Zero
+        if (equal(lhs, reflect(Zero.class))) {
+            return reflect(Zero.class); // Refine lhs to Zero
+        }
+    } else if (operator == Comparison.LE) {
+        if (equal(rhs, reflect(Zero.class))) {
+            return reflect(Zero.class); // lhs could be zero if less than or equal to Zero
+        }
+    } else if (operator == Comparison.GT) {
+        if (equal(lhs, reflect(Zero.class))) {
+            return reflect(NonZero.class); // lhs must be NonZero if greater than Zero
+        }
+    } else if (operator == Comparison.GE) {
+        if (equal(rhs, reflect(Zero.class))) {
+            return reflect(Zero.class); // lhs could be Zero or greater, leading to a potential divide-by-zero
+        }
+    }
+
+    return lhs; 
+}
 
   /**
    * For an arithmetic expression (lhs `op` rhs), compute the point in the lattice for the result of
@@ -95,11 +123,55 @@ public class DivByZeroTransfer extends CFTransfer {
    * @param rhs the lattice point for the right-hand side of the expression
    * @return the lattice point for the result of the expression
    */
-  private AnnotationMirror arithmeticTransfer(
-      BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+private AnnotationMirror arithmeticTransfer(
+    BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
+    
+    if (operator == BinaryOperator.DIVIDE) {
+        // Check for division by zero
+        if (equal(rhs, reflect(Zero.class)) || equal(lhs, top())) {
+            return reflect(Zero.class); // Division by zero detected
+        }
+
+        if (equal(lhs, reflect(NonZero.class))) {
+            return reflect(NonZero.class); // Result is NonZero
+        }
+
+        // If lhs is Zero, the result of division is Zero
+        if (equal(lhs, reflect(Zero.class))) {
+            return reflect(Zero.class);
+        }
+
+        // If both lhs and rhs are unknown, we can't make any conclusions
+        return top();
+    }
+
+    // Handle addition
+    if (operator == BinaryOperator.PLUS) {
+        if (!equal(lhs, reflect(Zero.class)) && !equal(rhs, reflect(Zero.class))) {
+            return reflect(NonZero.class); // Both operands are NonZero
+        }
+        return lub(lhs, rhs); // Return least upper bound
+    }
+
+    // Handle subtraction
+    if (operator == BinaryOperator.MINUS) {
+        if (equal(lhs, rhs)) {
+            return reflect(Zero.class); // Result is Zero
+        }
+        return lub(lhs, rhs);
+    }
+
+    // Handle multiplication
+    if (operator == BinaryOperator.TIMES) {
+        if (!equal(lhs, reflect(Zero.class)) && !equal(rhs, reflect(Zero.class))) {
+            return reflect(NonZero.class); // Both operands are NonZero
+        }
+        return lub(lhs, rhs); // Return least upper bound
+    }
+
     return top();
-  }
+}
+
 
   // ========================================================================
   // Useful helpers

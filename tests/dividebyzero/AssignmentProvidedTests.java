@@ -87,4 +87,30 @@ class AssignmentProvidedTests {
     // :: error: divide.by.zero
     int k = 1 / z;
   }
+
+   public static void loopTest(int a) {
+    // Division inside a loop
+    for (int i = 0; i < 10; i++) {
+      if (a == 0) {
+        // :: error: divide.by.zero
+        int result = i / a;
+      }
+    }
+  }
+
+   public void testChainedArithmetic() {
+    int a = 3;
+    int b = 6;
+    int c = 2;
+    // :: error: divide.by.zero
+    int result = a / (b - b); 
+   }
+   
+   public void testDivideByZeroWithMultipleOperators() {
+    int a = 5;
+    int b = 10;
+    // :: error: divide.by.zero
+    int result = (a * 2) / (b - 10); // b - 10 equals zero, should detect division by zero
+}
+
 }
