@@ -26,22 +26,23 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
    * @param node the AST node to inspect
    * @return true if an error should be reported, false otherwise
    */
-  private boolean errorAt(BinaryTree node) {
+private boolean errorAt(BinaryTree node) {
     // A BinaryTree can represent any binary operator, including + or -.
-    // TODO
     
     // Check if the operator is one of the division or remainder operators
-	if (DIVISION_OPERATORS.contains(node.getKind())) {
-	// Get the right-hand side operand
-	Tree rhs = node.getRightOperand();
+    if (DIVISION_OPERATORS.contains(node.getKind())) {
+        // Get the right-hand side operand
+        Tree rhs = node.getRightOperand();
 
-	// Check if the right-hand operand could be zero
-	if (rhs != null && hasAnnotation(rhs, Zero.class)) {
-	    return true;  // Only flag a divide-by-zero if rhs has @Zero
-	}
+        // Check if the right-hand operand could be zero or top
+        if (rhs != null) {
+            if (hasAnnotation(rhs, Zero.class) || hasAnnotation(rhs, Top.class)) {
+                return true;  // Flag a divide-by-zero if rhs has @Zero or is top
+            }
+        }
     }
-    return false; 	
-  }
+    return false;     
+}
 
   /**
    * Determine whether to report an error at the given compound assignment AST node. The error text
@@ -50,18 +51,19 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
    * @param node the AST node to inspect
    * @return true if an error should be reported, false otherwise
    */
-  private boolean errorAt(CompoundAssignmentTree node) {
+private boolean errorAt(CompoundAssignmentTree node) {
     // A CompoundAssignmentTree represents any binary operator combined with an assignment,
     // such as "x += 10".
-    // TODO
     
     if (DIVISION_OPERATORS.contains(node.getKind())) {
         // Get the right-hand side operand
         Tree rhs = node.getExpression();
         
-        // Check if the right-hand operand could be zero
-        if (rhs != null && hasAnnotation(rhs, Zero.class)) {
-            return true;  // Only flag divide-by-zero if rhs is zero
+        // Check if the right-hand operand could be zero or top
+        if (rhs != null) {
+            if (hasAnnotation(rhs, Zero.class) || hasAnnotation(rhs, Top.class)) {
+                return true;  // Flag divide-by-zero if rhs is zero or is top
+            }
         }
     }
     return false;

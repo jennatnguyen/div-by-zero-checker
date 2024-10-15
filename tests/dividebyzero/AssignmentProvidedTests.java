@@ -111,6 +111,14 @@ class AssignmentProvidedTests {
     int b = 10;
     // :: error: divide.by.zero
     int result = (a * 2) / (b - 10); // b - 10 equals zero, should detect division by zero
-}
+    }
+    
+   public void anotherCase(int x, int y) {
+    if (x > y) {
+      // :: error: divide.by.zero
+      int result = x / y; 
+    }
+  }
+
 
 }
