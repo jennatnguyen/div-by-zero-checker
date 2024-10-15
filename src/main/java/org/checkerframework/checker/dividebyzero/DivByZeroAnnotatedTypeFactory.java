@@ -25,26 +25,30 @@ public class DivByZeroAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
    * @return the most specific possible point in the lattice for the given literal
    */
   private Class<? extends Annotation> defaultAnnotation(LiteralTree literal) {
-    switch (literal.getKind()) {
-      case INT_LITERAL:
-        int intValue = (Integer) literal.getValue();
-        // TODO
-        if (intValue == 0) {
-        	return Zero.class; // Map zero literal to @Zero
-    	} else {
-        	return NonZero.class; // Map non-zero literals to @NonZero
-    	}
-      
-      case LONG_LITERAL:
-        long longValue = (Long) literal.getValue();
-        // TODO
-	if (longValue == 0) {
-	return Zero.class; // Map zero literal to @Zero
-	} else {
-	return NonZero.class; // Map non-zero literals to @NonZero
-	}        
-    }
-    return Top.class;
+ switch (literal.getKind()) {
+            case INT_LITERAL:
+                int intValue = (Integer) literal.getValue();
+                // Check the integer value and return the corresponding annotation
+                if (intValue == 0) {
+                    return Zero.class; // Map zero literal to @Zero
+                } else if (intValue < 0) {
+                    return Negative.class; // Map negative literals to @Negative
+                } else {
+                    return Positive.class; // Map positive literals to @Positive
+                }
+                
+            case LONG_LITERAL:
+                long longValue = (Long) literal.getValue();
+                // Check the long value and return the corresponding annotation
+                if (longValue == 0) {
+                    return Zero.class; // Map zero literal to @Zero
+                } else if (longValue < 0) {
+                    return Negative.class; // Map negative literals to @Negative
+                } else {
+                    return Positive.class; // Map positive literals to @Positive
+                }
+        }
+        return Top.class; // Default case if no match is found   
   }
 
   // ========================================================================

@@ -5,6 +5,6 @@ import java.lang.annotation.Target;
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.SubtypeOf;
 
-@SubtypeOf({Zero.class, Negative.class, Positive.class})
+@SubtypeOf({NonZero.class})
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
-public @interface Bottom {}
+public @interface Negative {}
