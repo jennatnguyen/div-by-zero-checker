@@ -119,6 +119,39 @@ class AssignmentProvidedTests {
       int result = x / y; 
     }
   }
+  
+   public static void anotherCase1() {
+    int x = -1;
+    int y = 1;
+    int z = 0;
+    int a = y/x;
+    if (x != y) {
+      // :: error: divide.by.zero
+      int result = x / (x+y); 
+    }
+    
+    if(0 == z) {
+      // :: error: divide.by.zero    
+    	int product = y / z;
+    }
+    
+    if (-5 < x){
+    	int answer = z / (y-x);
+    }
+    
+    if (x <= 0){
+    	int answer2 = 5/x;
+    }
+    
+  }
+  
+  public static void coinFLip(){
+	int x = coinflip()? 1 : -1;
+	int y = coinflip()? 1: -1; 
+	int z = x + y;  
+	// :: error: divide.by.zero
+	int a = 5/z;	
+  }
 
 
 }
