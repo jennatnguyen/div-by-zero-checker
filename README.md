@@ -56,14 +56,7 @@ the Divide By Zero Checker, with an explanation of each one:
 @Bottom = Represents no possible values
 
 Tree:
-
-                @Top
-            /         \
-        @NonZero       @Zero
-        /      \         /
-@Positive    @Negative  / 
-         \      /     /
-              @Bottom
+![image](https://github.com/user-attachments/assets/23ebd5e9-ce48-448d-8594-7f5eb67dd13f)
 
 ## How to build the checker
 
