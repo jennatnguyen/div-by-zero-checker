@@ -86,51 +86,49 @@ private AnnotationMirror refineLhsOfComparison(
             return reflect(NonZero.class); // lhs cannot be Zero if it is not equal to Zero
         }
     } 
+    
     // Handle "equal" comparison
-    //top is equal to zero then top is zero
     else if (operator == Comparison.EQ) {
-        // If rhs is zero, refine lhs to Zero
-        if (equal(rhs, reflect(Zero.class))) {
-            return reflect(Zero.class); 
-        }
-    } 
+        return glb(lhs,rhs);
+    }
+     
     // Handle "less than" comparison LHS < VALUE
     //top is < zero then top is negative
     else if (operator == Comparison.LT) {
         // If lhs is Negative, it remains Negative
         if (equal(rhs, reflect(Zero.class))) {
             return reflect(Negative.class); 
-        } 
+        } else if (equal(rhs, reflect(Negative.class))){
+        	return reflect(Negative.class); 
+        }
     }
     
     // Handle "less than or equal" comparison
     //top is LE 0 then top is top()
     else if (operator == Comparison.LE) {
-        // If rhs is zero, lhs could be Zero or any positive value
-        if (equal(rhs, reflect(Zero.class))) {
-            return top(); // lhs could be zero or greater
-        }
+        // Will be Negative if RHS negative,
+	if (equal(rhs, reflect(Negative.class))) {
+	    return reflect(Negative.class); 
+	} 
+	
     } 
     // Handle "greater than" comparison >
     else if (operator == Comparison.GT) {
 	//top is > 0 then top is nonzero
         if (equal(rhs, reflect(Zero.class))) {
-            return reflect(NonZero.class); 
-        } 
-        // top is > negative can be zero
-        else if (equal(rhs, reflect(Negative.class))) {
-            return top(); 
-        } 
+            return reflect(Positive.class); 
+        }  
         // If lhs is Negative, no refinement can be made
         else if (equal(rhs, reflect(Positive.class))) {
             return reflect(Positive.class); 
         } 
-    } 
+    }
+     
     // Handle "greater than or equal" comparison
     else if (operator == Comparison.GE) {
         // If rhs is zero, lhs could be Zero or greater
-        if (equal(rhs, reflect(Zero.class))) {
-            return top(); 
+        if (equal(rhs, reflect(Positive.class))) {
+            return reflect(Positive.class); 
         }
     }
 
@@ -158,21 +156,31 @@ private AnnotationMirror arithmeticTransfer(
     
     if (operator == BinaryOperator.DIVIDE) {
         // Check for division by zero
-        if (equal(rhs, reflect(Zero.class))) {
+        if (equal(rhs, reflect(Zero.class)) ) {
             return bottom(); // Return Bottom to indicate invalid operation
-        } else if (equal(lhs, top())) {
-            return reflect(NonZero.class); // Return NonZero if lhs is uncertain
-        }
+        } 
         
-        // If lhs is NonZero, the result is NonZero
-        if (equal(lhs, reflect(NonZero.class))) {
-            return reflect(NonZero.class); 
-        }
-
         // If lhs is Zero, the result of division is Zero
-        if (equal(lhs, reflect(Zero.class))) {
+        else if (equal(lhs, reflect(Zero.class))) {
             return reflect(Zero.class);
         }
+        
+       else if (equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Positive.class)) ) {
+            return reflect(Positive.class);
+        }
+        
+       else if (equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Negative.class)) ) {
+            return reflect(Positive.class);
+        }
+        
+       else if (equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Positive.class)) ) {
+            return reflect(Negative.class);
+        }       
+        
+                
+       else if (equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Negative.class)) ) {
+            return reflect(Negative.class);
+        }                  
 
         // If both lhs and rhs are unknown, we can't make any conclusions
         return top();
@@ -190,53 +198,36 @@ private AnnotationMirror arithmeticTransfer(
             return lhs; // The result reflects lhs directly
         }
 
-        // If both operands are NonZero, the result is NonZero
-        if (equal(lhs, reflect(NonZero.class)) && equal(rhs, reflect(NonZero.class))) {
-            return reflect(NonZero.class); // Result is NonZero
-        }
-
         // If operand is Positive 
-        if (equal(lhs, reflect(Positive.class)) || equal(rhs, reflect(Positive.class))) {
+        if (equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Positive.class)) ) {
             return reflect(Positive.class); // Result could be Positive
         }
 
         // If one operand is Negative and the other is NonZero
-        if (equal(lhs, reflect(Negative.class)) || equal(rhs, reflect(Negative.class))) {
+        if (equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Negative.class)) ) {
             return reflect(Negative.class); // Result could be Negative
         }
 	
-	// Handle cancellation between positive and negative
-	if ((equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Negative.class))) ||
-	(equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Positive.class)))) {
-		return top(); // The result could cancel out and become Zero or NonZero
-	}
-	
-        // When both operands are not equal to Zero but exact values are unknown,
-        // it represents possible outcomes without definitive conclusion
-        return lub(lhs, rhs); // Return least upper bound
+        return top();
     }
 
     // Handle subtraction
     if (operator == BinaryOperator.MINUS) {
-        if (equal(lhs, rhs)) {
-            return reflect(Zero.class); // Result is Zero
-        }
-        
-        // Handle cases for NonZero, Positive, and Negative
-        if (equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Positive.class))) {
-            return reflect(NonZero.class); 
-        } 
-        if (equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Negative.class))) {
+            
+        if (equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Negative.class)) ) {
             return reflect(NonZero.class); 
         }
         
        	// Handle cancellation between positive and negative
-	if ((equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Negative.class))) ||
-	(equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Positive.class)))) {
-		return top(); // The result could cancel out and become Zero or NonZero
+	if ( equal(lhs, reflect(Positive.class)) && equal(rhs, reflect(Negative.class)) ) {
+		return reflect(Positive.class);	
+	}
+	
+	if ( equal(lhs, reflect(Negative.class)) && equal(rhs, reflect(Positive.class)) ) {
+		return reflect(Negative.class);	
 	}
 
-        return lub(lhs, rhs); // Return least upper bound
+        return top(); 
     }
 
     // Handle multiplication
@@ -261,7 +252,7 @@ private AnnotationMirror arithmeticTransfer(
             return reflect(Positive.class); // Positive * Positive = Positive
         }
 
-        return lub(lhs, rhs); // Return least upper bound if we can't determine
+        return top();
     }
 
     return top(); // Return top for undefined operations
