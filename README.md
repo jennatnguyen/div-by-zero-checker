@@ -48,12 +48,12 @@ on types, to indicate more precisely what values the type represents.
 Here is a list of the type qualifiers that are supported by
 the Divide By Zero Checker, with an explanation of each one:
 
-@Top = Represents every possible value
-@Zero = Represents values identified as zero
-@NonZero = Represents values that are not zero
-@Positive = Represents positive values
-@Negative = Represents negative values
-@Bottom = Represents no possible values
+- @Top = Represents every possible value
+- @Zero = Represents values identified as zero
+- @NonZero = Represents values that are not zero
+- @Positive = Represents positive values
+- @Negative = Represents negative values
+- @Bottom = Represents no possible values
 
 Tree:
 
